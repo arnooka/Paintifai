@@ -1,0 +1,112 @@
+<html>
+
+<head>
+    <title>Paintifai</title>
+
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Rokkitt">
+    <style>
+        body {
+            font-family: 'Rokkitt', serif;
+            font-size: 24px;
+            text-align: center;
+        }
+        
+        .circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50px;
+            font-size: 20px;
+            line-height: 100px;
+            margin: auto;
+        }
+        
+        .color {
+            text-align: center;
+        }
+        
+        table {
+            font-family: 'Rokkitt', serif;
+        }
+        
+        
+    </style>
+
+</head>
+    
+
+<body bgcolor="#c1d6eb" >
+    <img class='displayed' src='paintifai.png' width='500' height='150'>
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="bundle.js"></script>
+    <script type="text/javascript" src="https://sdk.clarifai.com/js/clarifai-1.2.1.js"></script>
+    <script type="text/javascript" src="require.js"></script>
+        
+    <script>
+        Clarifai.initialize({
+            'clientId': 'ZASdwzU_0kfyWYKs-H3A6rLdLRL6TBkSVx4--0KX',
+            'clientSecret': 'tvnIgdM2gw7g209FHaIZ1CdYwYRldRWwcnQI8Udf'
+        });
+        
+        function compareColorsByDensity(a, b) {
+            return b.density - a.density;
+        }
+        
+        // get colors
+        function getColors() {
+            var url = document.getElementById('search').value;
+            document.getElementById('image').src = url;
+            
+            Clarifai.getColorsByUrl(url).then(
+                function(_response) {
+                    
+                    var colors = new Array();
+                    var names = new Array();
+                    var density = new Array();
+                    var table = "<table cellpadding=\"20\" align=\"center\" style=\"width:100%;\"><tr>"
+                    var i = 0;
+                    var responseColors = _response.results[0].colors;
+                    responseColors.sort(compareColorsByDensity);
+                    responseColors.forEach(function(element) {
+                        colors[i] = element.w3c.hex;
+                        names[i] = element.w3c.name;
+                        density[i] = element.density;
+                        var circle = "<div class=\"color\" style=\"font-family: 'Rokkitt', serif;\">" + names[i] + "<br>" + colors[i] + "<br>";
+                        circle += "<div class=\"circle\" style=\"background:" + colors[i] + ";\"></div>" + (parseFloat(density[i]) * 100).toFixed(2).toString() + "%<br><a target=\"_blank\" href=\"https://www.pantone.com/color-finder?q=%23" + colors[i].substr(1, colors[i].length - 1) + "\">View on Pantone</a></div>";
+                        table += "<td>" + circle + "</td>";
+                        if (i == 3 || i % 4 == 3) {
+                            table += "</tr><tr>";
+                        }
+                        i++;
+                    });
+                    table += "</tr></table>"
+                    document.getElementById("table").innerHTML = table;
+
+                    /* window.alert(colors); */
+                },
+                function(_response) {
+
+                })
+        };
+
+        $("#search").keyup(function() {
+            var searchQuery = $("#search").val();
+        });
+    </script>
+    </div>
+    <p id="p2">Paste url in the box below and hit submit!</p>
+    <input id="search" type="text" name="url" placeholder="Search.." onchange="getColors()">
+    <button onclick="getColors()">Submit</button>
+
+    <div id="table"></div>
+
+    <div id="Preview" class="row imagePreview" >
+        <div class="col-sm-12">
+            <h2>Image preview</h2>
+            <img class="img-responsive" id="image" src="" style="width:400px">
+        </div>
+    </div>
+
+    <p align="right">Density percentages relative to colors shown.</p>
+
+
+</body>
